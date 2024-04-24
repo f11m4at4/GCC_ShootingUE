@@ -2,6 +2,7 @@
 
 
 #include "CPlayer.h"
+#include "CBullet.h"
 
 // Sets default values
 ACPlayer::ACPlayer()
@@ -52,7 +53,8 @@ void ACPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	// 오른쪽으로 이동하고 싶다.
 	// 1. 방향이 필요하다.
-	FVector Direction = FVector::RightVector;
+	FVector Direction(0, h, v);
+
 	// 2. 이동하고 싶다.
 	// P = P0 + vt
 	FVector P0 = GetActorLocation();
@@ -66,5 +68,29 @@ void ACPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis(TEXT("Horizontal"), this, &ACPlayer::Horizontal);
+	PlayerInputComponent->BindAxis(TEXT("Vertical"), this, &ACPlayer::Vertical);
+	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ACPlayer::Fire);
+}
+
+void ACPlayer::Horizontal(float value)
+{
+	h = value;
+}
+
+void ACPlayer::Vertical(float value)
+{
+	v = value;
+}
+
+// 사용자가 발사버튼을 누르면 
+void ACPlayer::Fire()
+{
+	// 총알을 발사하고 싶다.
+	// 필요속성 : 총알공장
+	// 1. 총앙공장에서 총알을 만들고 싶다.
+	FActorSpawnParameters param;
+	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ACBullet* bullet = GetWorld()->SpawnActor<ACBullet>(BulletFactory, GetActorLocation(), FRotator::ZeroRotator, param);
 }
 

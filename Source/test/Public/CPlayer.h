@@ -32,4 +32,16 @@ public:
 	class UStaticMeshComponent* BodyMesh = nullptr;
 	UPROPERTY(VisibleAnywhere, Category="Component")
 	class USceneComponent* FirePosition = nullptr;
+
+	float h;
+	float v;
+	// 좌우입력처리함수
+	void Horizontal(float value);
+	void Vertical(float value);
+
+	// 사용자가 발사버튼을 누르면 총알을 발사하고 싶다.
+	void Fire();
+	// 필요속성 : 총알공장
+	UPROPERTY(EditAnywhere, Category=Settings)
+	TSubclassOf<class ACBullet> BulletFactory;
 };
