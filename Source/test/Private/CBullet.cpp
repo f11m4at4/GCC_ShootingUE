@@ -49,7 +49,7 @@ void ACBullet::Tick(float DeltaTime)
 
 	// 위로 계속 이동하고 싶다.
 	// p = p0 + vt
-	FVector P = GetActorLocation() + FVector::UpVector * Speed * DeltaTime;
+	FVector P = GetActorLocation() + GetActorRightVector() * Speed * DeltaTime;
 	SetActorLocation(P);
 }
 

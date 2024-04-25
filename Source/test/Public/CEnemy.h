@@ -40,4 +40,22 @@ public:
 
 	UFUNCTION()
 	void OnComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void Fire();
+	// 필요속성 : 총알공장
+	UPROPERTY(EditAnywhere, Category=Settings)
+	TSubclassOf<class ACBullet> BulletFactory;
+
+	// 필요속성 : 총알 갯수, 거리
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	int32 BulletCount = 6;
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	float Distance = 100;
+
+	// 필요속성 : 생성시간, 경과시간, 최대 몇개?, 현재 몇개?
+	UPROPERTY(EditAnywhere, Category="Settings")
+	float CreateTime = 0.205f;
+	float CurrentTime = 0;
+	// 현재 몇개?
+	int32 CurrentBulletCount = 0;
 };

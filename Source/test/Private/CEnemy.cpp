@@ -4,6 +4,8 @@
 #include "CEnemy.h"
 #include "CPlayer.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "CBullet.h"
 
 // Sets default values
 ACEnemy::ACEnemy()
@@ -46,8 +48,6 @@ void ACEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// 태어날때 타겟 방향을 구하고 싶다.
-	FindTargetDirection();
 }
 
 // Called every frame
@@ -55,8 +55,22 @@ void ACEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FindTargetDirection();
 	// 이동하고 싶다.
-	MoveToTarget();
+	//MoveToTarget();
+	// 일정시간에 한번씩 총알을 만들고 싶다.
+	// 1. 시간이 흘렀으니까
+	CurrentTime += DeltaTime;
+	// 2. 일정시간이 지났으니까
+	// 단, 6개만 -> 만약 현재 생성된 총알 갯수가 6보다 작다면
+	if (CurrentBulletCount < BulletCount && CurrentTime > CreateTime)
+	{
+		// 3. 총알을 발사하고 싶다.
+		Fire();
+		CurrentTime = 0;
+		// 현재 총알갯수 증가
+		CurrentBulletCount++;
+	}
 }
 
 void ACEnemy::FindTargetDirection()
@@ -67,13 +81,17 @@ void ACEnemy::FindTargetDirection()
 	ACPlayer* Target = Cast<ACPlayer>(player);
 	Direction = Target->GetActorLocation() - GetActorLocation();
 	Direction.Normalize();
+
+	FRotator Rot = UKismetMathLibrary::MakeRotFromXZ(GetActorForwardVector(), Direction);
+	SetActorRotation(Rot);
 }
 
 void ACEnemy::MoveToTarget()
 {
 	// 그 방향으로 계속 이동하고 싶다.
 	// P = P0 + vt
-	FVector P = GetActorLocation() + Direction * Speed * GetWorld()->DeltaTimeSeconds;
+	//FVector Dir = GetActorTransform().TransformVector(FVector::UpVector);
+	FVector P = GetActorLocation() + GetActorUpVector() * Speed * GetWorld()->DeltaTimeSeconds;
 
 	SetActorLocation(P);
 }
@@ -84,3 +102,27 @@ void ACEnemy::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, 
 	Destroy();
 }
 
+void ACEnemy::Fire()
+{
+	float thetaRange = 360.0f / BulletCount;
+	// 총알 갯수만큼 만들고 싶다.
+	// 총알이 배치될 위치를 구하고 싶다.
+	FVector Location = GetActorLocation();
+	// 1. Y, Z 값을 구하고 싶다.
+	// 2. Y = R * Cos(theta)
+	float theta = FMath::DegreesToRadians(thetaRange * CurrentBulletCount);
+	Location.Y += Distance * FMath::Cos(theta);
+	// 3. Z = R * Sin(Theta)
+	Location.Z += Distance * FMath::Sin(theta);
+
+	FRotator Rot;
+	Rot.Roll = -thetaRange * CurrentBulletCount;
+	// 4. Y, Z 를 위치에 적용시키고 싶다.
+
+	// 총알을 발사하고 싶다.
+	// 필요속성 : 총알공장
+	// 1. 총앙공장에서 총알을 만들고 싶다.
+	FActorSpawnParameters param;
+	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ACBullet* bullet = GetWorld()->SpawnActor<ACBullet>(BulletFactory, Location, Rot, param);
+}
